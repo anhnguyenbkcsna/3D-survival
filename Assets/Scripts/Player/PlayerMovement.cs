@@ -1,4 +1,5 @@
 ﻿using Cinemachine;
+using DefaultNamespace;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -14,14 +15,28 @@ namespace Player
         public float turnSmoothVelocity;
         
         private Transform _mainCamera;
+        private Animator _animator;
+        private NetworkCommunicator _network;
 
         private void Start()
         {
             _mainCamera = GameObject.FindWithTag("MainCamera").transform;
+            _animator = GetComponent<Animator>();
+            _network = GetComponent<NetworkCommunicator>();
         }
         public override void OnNetworkSpawn()
         {
-            if (!IsLocalPlayer)
+            if (IsServer)
+            {
+                controller.enabled = false;
+                transform.position = new Vector3(0, 0, 0);
+                controller.enabled = true;
+            }
+            else
+            {
+                controller.enabled = false;
+            }
+            if (!IsOwner)
             {
                 enabled = false;
                 freeLookCamera.Priority = 0;
@@ -29,7 +44,7 @@ namespace Player
             else
             {
                 freeLookCamera.Priority = 10;
-                freeLookCamera.Follow = transform;
+                // freeLookCamera.Follow = transform;
             }
         }
 
@@ -43,11 +58,21 @@ namespace Player
             {
                 // Rotate the player to face the direction of movement.
                 var targetAngle = Mathf.Atan2(direction.x, direction.z) * Mathf.Rad2Deg + _mainCamera.eulerAngles.y;
-                var angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
-                transform.rotation = Quaternion.Euler(0f, angle, 0f);
+                // var angle = Mathf.SmoothDampAngle(transform.eulerAngles.y, targetAngle, ref turnSmoothVelocity, turnSmoothTime);
+                // transform.rotation = Quaternion.Euler(0f, angle, 0f);
+                _network.RotatePlayerServerRpc(Quaternion.Euler(0f, targetAngle, 0f));
                 
                 var moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
-                controller.Move(moveDir.normalized * (speed * Time.deltaTime));
+                // controller.Move(moveDir.normalized * (speed * Time.deltaTime));
+                _network.MovePlayerServerRpc(moveDir.normalized * (speed * Time.deltaTime));
+            }
+        }
+        private void OnTriggerEnter(Collider other)
+        {
+            if (!IsServer) return;
+            if (other.GetComponent<PlayerBullet>())
+            {
+                GetComponent<NetworkHealthState>().health.Value -= 10;
             }
         }
     }

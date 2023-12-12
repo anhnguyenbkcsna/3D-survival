@@ -68,7 +68,7 @@ namespace Enemy
                 if (_attackCdTimer <= 0)
                 {
                     _attackCdTimer = attackCd;
-                    _playerTransform.GetComponent<Player.PlayerBehaviour>().TakeDamage(damage);
+                    // _playerTransform.GetComponent<Player.PlayerBehaviour>().TakeDamage(damage);
                 }
             }
             else

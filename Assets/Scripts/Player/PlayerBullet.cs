@@ -1,32 +1,33 @@
 ﻿using System;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace Player
 {
-    public class PlayerBullet : MonoBehaviour {
+    public class PlayerBullet : NetworkBehaviour {
 
-        [SerializeField] private float speed = 10f;
-        private Vector3 _dir;
-
-        public void Init(Vector3 dir) {
-            _dir = dir;
-            Invoke(nameof(DestroyBall), 3);
-        }
-        private void OnCollisionEnter(Collision other) {
-            if (other.gameObject.CompareTag("Enemy")) {
-                other.gameObject.GetComponent<Enemy.EnemyBehaviour>().TakeDamage(1);
-            }
-            DestroyBall();
+        [SerializeField] private float speed = 1f;
+        
+        public override void OnNetworkSpawn()
+        {
+            base.OnNetworkSpawn();
         }
 
         private void Update()
         {
-            transform.position += _dir.normalized * Time.deltaTime * speed;
+            transform.position += transform.forward * speed;
+            MoveBulletServerRpc(transform.position);
         }
-
-        private void DestroyBall() {
-            Destroy(gameObject);
+        [ClientRpc]
+        private void MoveBulletClientRpc(Vector3 position)
+        {
+            transform.position = position;
+        }
+        [ServerRpc(RequireOwnership = false)]
+        private void MoveBulletServerRpc(Vector3 position)
+        {
+            // MoveBulletClientRpc(position);       
+            transform.position = position;
         }
     }
-    
 }
