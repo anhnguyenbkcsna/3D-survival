@@ -10,17 +10,19 @@ namespace Enemy
         // [SerializeField] private GameObject bossPrefab;
         
         private NetworkVariable<int> _enemyCount = new NetworkVariable<int>();
-        private int _maxEnemyCount = 10;
         private float _spawnTime = 5f;
         private float _spawnTimer = 0f;
-        private float _spawnRadius = 10f;
-        
+        private float _spawnRadius = 5f;
+
         public override void OnNetworkSpawn()
         {
+            if (!IsServer)
+            {
+                return;
+            }
             base.OnNetworkSpawn();
-            _enemyCount.Value = 0;
+            _enemyCount.Value = 3;
         }
-
         private void Update()
         {
             if (_spawnTimer <= 0)
@@ -34,16 +36,16 @@ namespace Enemy
             }
         }
         
-        [ServerRpc]
+        [ServerRpc(RequireOwnership = false)]
         private void SpawnEnemyServerRpc()
         {
-            if (_enemyCount.Value < _maxEnemyCount)
+            if (_enemyCount.Value >= 0)
             {
                 var position = transform.position + UnityEngine.Random.insideUnitSphere * _spawnRadius;
                 position.y = 0;
                 var enemy = Instantiate(normalEnemyPrefab, position, Quaternion.identity);
                 enemy.GetComponent<NetworkObject>().Spawn();
-                _enemyCount.Value++;
+                _enemyCount.Value--;
             }
             else
             {

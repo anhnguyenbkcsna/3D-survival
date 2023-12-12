@@ -47,9 +47,15 @@ namespace Player
                 // freeLookCamera.Follow = transform;
             }
         }
-        public void Destroy()
+        public void DestroyPlayer()
         {
-            base.OnDestroy();
+            DestroyPlayerServerRpc();
+        }
+
+        [ServerRpc]
+        public void DestroyPlayerServerRpc()
+        {
+            Destroy(gameObject);
         }
 
         private void Update()

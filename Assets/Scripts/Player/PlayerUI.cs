@@ -27,11 +27,11 @@ namespace Player
             {
                 if (GetComponent<PlayerMovement>())
                 {
-                    Destroy(gameObject);
+                    GetComponent<PlayerMovement>().DestroyPlayer();
                 }
                 else if (GetComponent<EnemyNetwork>())
                 {
-                    Destroy(gameObject);
+                    GetComponent<EnemyNetwork>().DestroyEnemy();
                 }
             }
         }

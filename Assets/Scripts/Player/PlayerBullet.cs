@@ -6,7 +6,7 @@ namespace Player
 {
     public class PlayerBullet : NetworkBehaviour {
 
-        [SerializeField] private float speed = 100f;
+        [SerializeField] private float speed = 1f;
         
         public override void OnNetworkSpawn()
         {
@@ -15,11 +15,16 @@ namespace Player
 
         private void Update()
         {
-            transform.position += transform.forward * speed * Time.deltaTime;
-            MoveBulletServerRpc(transform.position);
+            var tf = transform.position + transform.forward * speed;
+            MoveBulletServerRpc(tf);
         }
 
         private void OnTriggerExit(Collider other)
+        {
+            DestroyBulletServerRpc();
+        }
+        [ServerRpc(RequireOwnership = false)]
+        private void DestroyBulletServerRpc()
         {
             Destroy(gameObject);
         }

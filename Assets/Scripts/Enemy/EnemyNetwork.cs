@@ -17,8 +17,10 @@ namespace Enemy
             if (_player.Length > 0)
             {
                 var player = _player[0];
-                transform.rotation = Quaternion.Slerp(transform.rotation,
-                    Quaternion.LookRotation(player.transform.position - transform.position), Time.deltaTime);
+                // Rotate face to player
+                var targetDirection = player.transform.position - transform.position;
+                var rotation = Quaternion.LookRotation(targetDirection);
+                RotateEnemyServerRpc(rotation);
                 
                 MoveEnemyServerRpc();
             }
@@ -32,13 +34,23 @@ namespace Enemy
             }
             else if (other.GetComponent<PlayerMovement>())
             {
+                Debug.Log("Enemy hit player!");
                 other.GetComponent<NetworkHealthState>().health.Value -= 10;
             }
         }
-        [ServerRpc(RequireOwnership = false)]
-        public void DestroyEnemyServerRpc()
+        public void DestroyEnemy()
+        {
+            DestroyPlayerServerRpc();
+        }
+        [ServerRpc]
+        private void DestroyPlayerServerRpc()
         {
             Destroy(gameObject);
+        }
+        [ServerRpc(RequireOwnership = false)]
+        private void RotateEnemyServerRpc(Quaternion rotation)
+        {
+            transform.rotation = rotation;
         }
         [ServerRpc(RequireOwnership = false)]
         private void MoveEnemyServerRpc()
