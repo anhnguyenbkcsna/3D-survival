@@ -10,7 +10,7 @@ namespace Player
         public CharacterController controller;
         [SerializeField] private CinemachineFreeLook freeLookCamera;
         
-        public float speed = 6f;
+        public float speed = 3f;
         public float turnSmoothTime = 0.1f;
         public float turnSmoothVelocity;
         
@@ -46,6 +46,10 @@ namespace Player
                 freeLookCamera.Priority = 10;
                 // freeLookCamera.Follow = transform;
             }
+        }
+        public void Destroy()
+        {
+            base.OnDestroy();
         }
 
         private void Update()
